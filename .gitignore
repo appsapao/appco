@@ -1,0 +1,16 @@
+# Gradle / Kotlin / IDE
+*.iml
+.gradle/
+build/
+/local.properties
+/.idea
+.DS_Store
+/captures
+.externalNativeBuild
+.cxx
+
+# Build outputs and test APKs are never committed.
+*.apk
+*.ap_
+*.jks
+!keystore/debug.jks

@@ -1,0 +1,13 @@
+# Normalize line endings so the Gradle wrapper and sources behave identically
+# on Windows, macOS and the Linux CI runner.
+* text=auto eol=lf
+
+# Windows batch files must keep CRLF.
+*.bat text eol=crlf
+
+# Binary artifacts must never be normalized.
+*.jar binary
+*.jks binary
+*.p12 binary
+*.apk binary
+*.png binary

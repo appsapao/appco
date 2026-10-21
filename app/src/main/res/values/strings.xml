@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">APK Cloner</string>
+    <string name="clone_title">New clone</string>
+    <string name="clones_title">Clones</string>
+
+    <string name="search_hint">Filter installed apps</string>
+    <plurals name="apps_count">
+        <item quantity="one">%d app</item>
+        <item quantity="other">%d apps</item>
+    </plurals>
+    <string name="loading_apps">Reading installed apps…</string>
+    <string name="no_apps">No installed apps found</string>
+    <string name="app_item_detail">%1$s · %2$s · %3$s</string>
+    <string name="app_item_detail_split">%1$s · %2$s · %3$s · split APK (not clonable)</string>
+    <string name="copying_apk">Copying the selected APK…</string>
+    <string name="no_file_picker">No file picker available on this device</string>
+    <string name="empty_file">The selected file is empty</string>
+    <string name="import_failed">Could not read the APK: %1$s</string>
+
+    <string name="analyzing">Reading the APK…</string>
+    <string name="apk_missing">The APK to clone could not be opened</string>
+    <string name="analysis_failed">Could not read this APK: %1$s</string>
+    <string name="cannot_clone">Cannot clone this APK</string>
+
+    <string name="name_required">The clone needs a name</string>
+    <string name="clone_name_hint">Clone name</string>
+    <string name="clone_name_default">%1$s clone</string>
+    <string name="package_name_hint">Package name</string>
+    <string name="clone_built_label">Clone built</string>
+    <string name="progress_format">%1$d%% · %2$s</string>
+    <string name="result_summary">%1$s (%2$s)\n%3$s · entries: %4$d\nSigned with this app\'s clone key\nSigned by: %5$s\nPermissions removed: %6$d\nProvider authorities renamed: %7$d\n\nInstalling adds a separate app; the original is left untouched.</string>
+    <string name="findings_blocked">This app cannot be cloned on this device.</string>
+    <string name="findings_with_blocker">%1$s\n\n%2$s</string>
+    <string name="package_must_differ">The clone must use a different package name</string>
+    <string name="package_already_installed">%1$s is already installed</string>
+    <string name="create_clone">Create clone</string>
+    <string name="creating_clone">Creating…</string>
+    <string name="clone_in_progress">A clone is already being built</string>
+    <string name="clone_failed">Clone failed: %1$s</string>
+
+    <string name="permissions_section">Permissions to remove</string>
+    <string name="permissions_hint">A removed permission is stripped from the manifest, so the app can no longer use it; runtime requests are denied.</string>
+    <string name="backup_section">Disable app backup (android:allowBackup=false)</string>
+
+    <string name="install_permission_title">Allow installing apps</string>
+    <string name="install_permission_body">Android requires a per-app permission to install an APK from outside a store. Allow “Install unknown apps” for APK Cloner, then try again.</string>
+    <string name="open_settings">Open settings</string>
+    <string name="open_installer">Open installer</string>
+
+    <string name="action_install">Install</string>
+    <string name="action_share">Share APK</string>
+    <string name="action_delete">Delete</string>
+    <string name="delete_clone_body">Delete the APK for “%1$s”? An installed clone is not affected.</string>
+    <string name="clone_deleted">Clone APK deleted</string>
+    <string name="empty_clones">No clones built yet.\nPick an installed app to create one.</string>
+
+    <string name="menu_clones">Clones</string>
+    <string name="menu_pick_apk">Pick APK file…</string>
+    <string name="menu_about">About &amp; limitations</string>
+
+    <string name="about_title">About &amp; limitations</string>
+    <string name="about_body">APK Cloner builds a new, independently installable app from an APK: it rewrites the package name, the launcher label, the provider authorities and selected permissions in the binary manifest, repackages the ZIP with correct alignment, and signs the result with a key generated on this device.\n\nWhat it cannot do:\n• Work without the original APK: the clone contains the original app’s code and resources, unmodified.\n• Keep the original signature. Google sign-in, Play Integrity, in-app billing, DRM and anything else that checks the signing certificate will fail.\n• Clone split APKs / app bundles, or apps that declare a sharedUserId.\n• Install without user confirmation: Android always asks.\n• Keep Play Store updates. The clone is a separate app and is not updated by the store.\n\nWhat it does not do:\n• No code is modified or patched.\n• Nothing leaves the device; the app requests no network permission.</string>
+</resources>

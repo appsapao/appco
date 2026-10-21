@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Clone APKs live in files/clones and are shared with the installer. -->
+    <files-path name="clones" path="clones/" />
+    <cache-path name="imported" path="imported/" />
+</paths>

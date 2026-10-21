@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#1565C0</color>
+    <color name="primary_dark">#0D47A1</color>
+    <color name="accent">#FF6F00</color>
+    <color name="window_background">#FAFAFA</color>
+    <color name="text_secondary">#6B6B6B</color>
+    <color name="severity_blocker">#B3261E</color>
+    <color name="severity_warning">#8A5300</color>
+    <color name="severity_info">#1F5FA8</color>
+</resources>

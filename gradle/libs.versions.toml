@@ -1,0 +1,22 @@
+# Every version is pinned. No dynamic versions ("+", "latest.release") are used,
+# so a given commit resolves to the same dependency set.
+[versions]
+agp = "8.7.3"
+kotlin = "2.0.21"
+coreKtx = "1.13.1"
+appcompat = "1.7.0"
+junit = "4.13.2"
+# apksig is used ONLY by :core unit tests, as an independent verifier of the
+# v2 signature produced by our own signer. It is not shipped in the APK.
+apksig = "8.7.3"
+
+[libraries]
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+junit = { module = "junit:junit", version.ref = "junit" }
+apksig = { module = "com.android.tools.build:apksig", version.ref = "apksig" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
