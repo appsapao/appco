@@ -49,6 +49,21 @@ object PackageNames {
         return kept.joinToString(".") + suffix
     }
 
+    /** Suggests the clone suffix ("clone1") for clone number [index] of [sourcePackage]. */
+    fun suggestSuffix(index: Int): String {
+        require(index >= 1) { "Clone index starts at 1" }
+        return "clone$index"
+    }
+
+    /**
+     * True when [name] is a permission/authority-style name owned by [packageName]:
+     * it equals the package or continues it as another dotted segment
+     * (`com.example.app.permission.C2D` is owned by `com.example.app`, but
+     * `com.example.appcompat` is *not* owned by `com.example.app`).
+     */
+    fun isOwnedBy(name: String, packageName: String): Boolean =
+        name == packageName || name.startsWith("$packageName.")
+
     /** Suggests the first free `.<suffix>N` name, given the package names already in use. */
     fun suggestFree(sourcePackage: String, taken: Set<String>, startIndex: Int = 1): String {
         var index = startIndex

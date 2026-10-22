@@ -59,7 +59,7 @@ class ClonePipelineTest {
         assertEquals("com.example.clone1", report.changes.newPackage)
         assertEquals(listOf("android.permission.CAMERA"), report.changes.removedPermissions)
         assertEquals("Source App Clone", report.changes.label)
-        assertTrue(report.changes.renamedAuthorities.any { it.second == "com.example.clone1.fileprovider" })
+        assertTrue(report.changes.renamedAuthorities.any { it.second == "com.example.source.fileprovider.clone1" })
 
         // 3. The output is a valid, signed, intact APK.
         assertTrue(output.isFile)
@@ -78,7 +78,7 @@ class ClonePipelineTest {
         assertEquals("Source App Clone", metadata.label)
         assertFalse(metadata.permissions.contains("android.permission.CAMERA"))
         assertTrue(metadata.permissions.contains("android.permission.INTERNET"))
-        assertEquals(listOf("com.example.clone1.fileprovider"), metadata.providerAuthorities)
+        assertEquals(listOf("com.example.source.fileprovider.clone1"), metadata.providerAuthorities)
 
         // 5. Class names still point at the original DEX classes.
         val editor = ManifestEditor.parse(ApkInspector().readManifestBytes(output))

@@ -39,26 +39,27 @@ class ManifestEditorTest {
         val direct = ManifestEditor.parse(
             TestManifests.standard(providerAuthority = "com.example.source.fileprovider;com.example.source.backup"),
         )
-        val changes = direct.renameProviderAuthorities("com.example.source", "com.example.clone2")
+        val changes = direct.renameProviderAuthorities("clone2")
         assertEquals(2, changes.size)
 
         val provider = direct.applicationElement()!!.childElements("provider").single()
         assertEquals(
-            "com.example.clone2.fileprovider;com.example.clone2.backup",
+            "com.example.source.fileprovider.clone2;com.example.source.backup.clone2",
             direct.document.stringValue(provider.frameworkAttribute("authorities")),
         )
     }
 
     @Test
-    fun `leaves unrelated provider authorities untouched`() {
+    fun `renames unrelated provider authorities as well`() {
         val editor = ManifestEditor.parse(
             TestManifests.standard(providerAuthority = "com.othercompany.provider"),
         )
-        val changes = editor.renameProviderAuthorities("com.example.source", "com.example.clone3")
-        assertTrue(changes.isEmpty())
+        val changes = editor.renameProviderAuthorities("clone3")
+        assertEquals(1, changes.size)
+        assertEquals("com.othercompany.provider" to "com.othercompany.provider.clone3", changes.single())
         val provider = editor.applicationElement()!!.childElements("provider").single()
         assertEquals(
-            "com.othercompany.provider",
+            "com.othercompany.provider.clone3",
             editor.document.stringValue(provider.frameworkAttribute("authorities")),
         )
     }

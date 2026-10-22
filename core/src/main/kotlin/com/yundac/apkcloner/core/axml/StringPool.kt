@@ -19,7 +19,7 @@ class StringPool internal constructor(
 
     val size: Int get() = values.size
 
-    fun get(index: Int): String = values[index.also {
+    operator fun get(index: Int): String = values[index.also {
         require(it in values.indices) { "String pool index $it out of range (size ${values.size})" }
     }]
 
