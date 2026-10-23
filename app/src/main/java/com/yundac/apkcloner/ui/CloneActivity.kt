@@ -1,21 +1,30 @@
 package com.yundac.apkcloner.ui
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
+import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
+import com.google.android.material.checkbox.MaterialCheckBox
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.materialswitch.MaterialSwitch
+import com.google.android.material.progressindicator.LinearProgressIndicator
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import com.yundac.apkcloner.R
 import com.yundac.apkcloner.clone.CloneSession
 import com.yundac.apkcloner.core.apk.ApkInspector
@@ -27,6 +36,7 @@ import com.yundac.apkcloner.core.clone.Severity
 import com.yundac.apkcloner.data.CloneStore
 import com.yundac.apkcloner.data.InstalledApps
 import com.yundac.apkcloner.install.ApkInstaller
+import com.yundac.apkcloner.ui.theme.ThemePreferences
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -38,22 +48,28 @@ import java.util.concurrent.Executors
  */
 class CloneActivity : AppCompatActivity() {
 
+    private lateinit var toolbar: MaterialToolbar
+    private lateinit var sourceIcon: ImageView
     private lateinit var sourceName: TextView
     private lateinit var sourceDetail: TextView
+    private lateinit var findingsCard: MaterialCardView
+    private lateinit var findingsStatusIcon: ImageView
     private lateinit var findingsText: TextView
-    private lateinit var labelInput: EditText
-    private lateinit var packageInput: EditText
+    private lateinit var labelInputLayout: TextInputLayout
+    private lateinit var labelInput: TextInputEditText
+    private lateinit var packageInputLayout: TextInputLayout
+    private lateinit var packageInput: TextInputEditText
     private lateinit var permissionContainer: LinearLayout
     private lateinit var permissionSection: LinearLayout
-    private lateinit var disableBackup: CheckBox
-    private lateinit var createButton: Button
-    private lateinit var progressSection: LinearLayout
-    private lateinit var progressBar: ProgressBar
+    private lateinit var disableBackup: MaterialSwitch
+    private lateinit var createButton: MaterialButton
+    private lateinit var progressSection: View
+    private lateinit var progressBar: LinearProgressIndicator
     private lateinit var progressText: TextView
-    private lateinit var resultSection: LinearLayout
+    private lateinit var resultSection: View
     private lateinit var resultText: TextView
-    private lateinit var installButton: Button
-    private lateinit var shareButton: Button
+    private lateinit var installButton: MaterialButton
+    private lateinit var shareButton: MaterialButton
 
     private val analysisExecutor = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "apk-analysis").apply { isDaemon = true }
@@ -68,17 +84,24 @@ class CloneActivity : AppCompatActivity() {
     private var analyzed = false
     private var lastBuiltPackage: String? = null
 
-    private val permissionCheckboxes = LinkedHashMap<String, CheckBox>()
+    private val permissionCheckboxes = LinkedHashMap<String, MaterialCheckBox>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemePreferences.applyActivityTheme(this)
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContentView(R.layout.activity_clone)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        toolbar = findViewById(R.id.toolbar)
+        sourceIcon = findViewById(R.id.sourceIcon)
         sourceName = findViewById(R.id.sourceName)
         sourceDetail = findViewById(R.id.sourceDetail)
+        findingsCard = findViewById(R.id.findingsCard)
+        findingsStatusIcon = findViewById(R.id.findingsStatusIcon)
         findingsText = findViewById(R.id.findingsText)
+        labelInputLayout = findViewById(R.id.labelInputLayout)
         labelInput = findViewById(R.id.labelInput)
+        packageInputLayout = findViewById(R.id.packageInputLayout)
         packageInput = findViewById(R.id.packageInput)
         permissionContainer = findViewById(R.id.permissionContainer)
         permissionSection = findViewById(R.id.permissionSection)
@@ -92,6 +115,17 @@ class CloneActivity : AppCompatActivity() {
         installButton = findViewById(R.id.installButton)
         shareButton = findViewById(R.id.shareButton)
 
+        toolbar.setNavigationOnClickListener { finish() }
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.rootLayout)) { _, insets ->
+            val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            val navBarInsets = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+
+            toolbar.updatePadding(top = statusBarInsets.top)
+            findViewById<View>(R.id.scrollView).updatePadding(bottom = navBarInsets.bottom + 24)
+            insets
+        }
+
         val path = intent.getStringExtra(EXTRA_APK_PATH)
         sourcePackage = intent.getStringExtra(EXTRA_PACKAGE).orEmpty()
         sourceLabel = intent.getStringExtra(EXTRA_LABEL).orEmpty()
@@ -102,12 +136,23 @@ class CloneActivity : AppCompatActivity() {
         installButton.setOnClickListener { installLastClone() }
         shareButton.setOnClickListener { shareLastClone() }
 
+        loadSourceIcon()
+
         val apk = sourceApk
         if (apk == null || !apk.isFile) {
             showFatal(getString(R.string.apk_missing))
             return
         }
         analyze(apk)
+    }
+
+    private fun loadSourceIcon() {
+        if (sourcePackage.isNotEmpty()) {
+            runCatching {
+                val icon = packageManager.getApplicationIcon(sourcePackage)
+                sourceIcon.setImageDrawable(icon)
+            }
+        }
     }
 
     override fun onStart() {
@@ -118,11 +163,6 @@ class CloneActivity : AppCompatActivity() {
     override fun onStop() {
         CloneSession.observe(null)
         super.onStop()
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        finish()
-        return true
     }
 
     private fun analyze(apk: File) {
@@ -187,32 +227,55 @@ class CloneActivity : AppCompatActivity() {
             }
             if (inspected.hasV2Signature) append(" · v2 signed")
         }
+        if (sourcePackage.isEmpty()) {
+            // For imported APKs, try reading icon from archive if available
+            val archiveInfo = packageManager.getPackageArchiveInfo(inspected.packageName, PackageManager.GET_ACTIVITIES)
+            archiveInfo?.applicationInfo?.let { appInfo ->
+                appInfo.sourceDir = inspected.packageName
+                appInfo.publicSourceDir = inspected.packageName
+                runCatching {
+                    sourceIcon.setImageDrawable(appInfo.loadIcon(packageManager))
+                }
+            }
+        }
     }
 
     private fun renderFindings(report: List<Finding>) {
-        val summary = report.joinToString("\n\n") { finding ->
-            val prefix = when (finding.severity) {
-                Severity.BLOCKER -> "BLOCKER — "
-                Severity.WARNING -> "Warning — "
-                Severity.INFO -> "Info — "
+        val summary = if (report.isEmpty()) {
+            getString(R.string.compatibility_good)
+        } else {
+            report.joinToString("\n\n") { finding ->
+                val prefix = when (finding.severity) {
+                    Severity.BLOCKER -> "BLOCKER — "
+                    Severity.WARNING -> "Warning — "
+                    Severity.INFO -> "Info — "
+                }
+                "$prefix${finding.title}\n${finding.detail}"
             }
-            "$prefix${finding.title}\n${finding.detail}"
         }
+
         findingsText.text = if (hasBlockers) {
             getString(R.string.findings_with_blocker, summary, getString(R.string.findings_blocked))
         } else {
             summary
         }
-        findingsText.setTextColor(
-            ContextCompat.getColor(
-                this,
-                when (CompatibilityChecker.overallSeverity(report)) {
-                    Severity.BLOCKER -> R.color.severity_blocker
-                    Severity.WARNING -> R.color.severity_warning
-                    Severity.INFO -> R.color.severity_info
-                }
-            )
-        )
+
+        val severity = CompatibilityChecker.overallSeverity(report)
+        val iconRes = when (severity) {
+            Severity.BLOCKER -> R.drawable.ic_error
+            Severity.WARNING -> R.drawable.ic_warning
+            Severity.INFO -> R.drawable.ic_check_circle
+        }
+        val colorRes = when (severity) {
+            Severity.BLOCKER -> R.color.severity_blocker
+            Severity.WARNING -> R.color.severity_warning
+            Severity.INFO -> R.color.severity_info
+        }
+
+        val color = ContextCompat.getColor(this, colorRes)
+        findingsStatusIcon.setImageResource(iconRes)
+        findingsStatusIcon.setColorFilter(color)
+        findingsText.setTextColor(color)
     }
 
     private fun renderPermissions(inspected: ApkMetadata) {
@@ -225,7 +288,7 @@ class CloneActivity : AppCompatActivity() {
         }
         permissionSection.visibility = View.VISIBLE
         permissions.forEach { permission ->
-            val checkBox = CheckBox(this).apply {
+            val checkBox = MaterialCheckBox(this).apply {
                 text = permission.substringAfterLast('.')
                 contentDescription = permission
                 textSize = 14f
@@ -255,20 +318,23 @@ class CloneActivity : AppCompatActivity() {
         val label = labelInput.text?.toString()?.trim().orEmpty()
         val packageName = packageInput.text?.toString()?.trim().orEmpty()
 
+        labelInputLayout.error = null
+        packageInputLayout.error = null
+
         if (label.isEmpty()) {
-            labelInput.error = getString(R.string.name_required)
+            labelInputLayout.error = getString(R.string.name_required)
             return
         }
         PackageNames.problem(packageName)?.let {
-            packageInput.error = it
+            packageInputLayout.error = it
             return
         }
         if (packageName == inspected.packageName) {
-            packageInput.error = getString(R.string.package_must_differ)
+            packageInputLayout.error = getString(R.string.package_must_differ)
             return
         }
         if (InstalledApps.isInstalled(this, packageName)) {
-            packageInput.error = getString(R.string.package_already_installed, packageName)
+            packageInputLayout.error = getString(R.string.package_already_installed, packageName)
             return
         }
 
@@ -354,7 +420,7 @@ class CloneActivity : AppCompatActivity() {
     }
 
     private fun showInstallPermissionDialog(file: File) {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.install_permission_title)
             .setMessage(R.string.install_permission_body)
             .setPositiveButton(R.string.open_settings) { _, _ -> ApkInstaller.openInstallPermissionSettings(this) }

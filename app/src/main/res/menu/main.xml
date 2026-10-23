@@ -4,16 +4,25 @@
 
     <item
         android:id="@+id/action_clones"
+        android:icon="@drawable/ic_clones"
         android:title="@string/menu_clones"
-        app:showAsAction="never" />
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_pick_apk"
+        android:icon="@drawable/ic_file_open"
         android:title="@string/menu_pick_apk"
-        app:showAsAction="never" />
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_theme"
+        android:icon="@drawable/ic_palette"
+        android:title="@string/menu_theme"
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_about"
+        android:icon="@drawable/ic_info"
         android:title="@string/menu_about"
         app:showAsAction="never" />
 </menu>

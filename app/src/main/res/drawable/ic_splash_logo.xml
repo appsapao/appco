@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp"
+    android:height="160dp"
+    android:viewportWidth="160"
+    android:viewportHeight="160">
+    <!-- Rounded app background container -->
+    <path
+        android:fillColor="#0B57D0"
+        android:pathData="M32,16h96a16,16 0 0 1 16,16v96a16,16 0 0 1 -16,16h-96a16,16 0 0 1 -16,-16v-96a16,16 0 0 1 16,-16z" />
+    <!-- Overlapping clone card back -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.45"
+        android:pathData="M48,42h44a10,10 0 0 1 10,10v44a10,10 0 0 1 -10,10h-44a10,10 0 0 1 -10,-10v-44a10,10 0 0 1 10,-10z" />
+    <!-- Overlapping clone card front -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M64,58h44a10,10 0 0 1 10,10v44a10,10 0 0 1 -10,10h-44a10,10 0 0 1 -10,-10v-44a10,10 0 0 1 10,-10z" />
+    <!-- Plus / Clone action indicator -->
+    <path
+        android:fillColor="#0B57D0"
+        android:pathData="M83,72h6v11h11v6h-11v11h-6v-11h-11v-6h11z" />
+</vector>

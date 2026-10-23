@@ -2,37 +2,66 @@ package com.yundac.apkcloner.ui
 
 import android.os.Bundle
 import android.view.View
-import android.widget.ListView
-import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.yundac.apkcloner.R
 import com.yundac.apkcloner.data.CloneRecord
 import com.yundac.apkcloner.data.CloneStore
 import com.yundac.apkcloner.install.ApkInstaller
+import com.yundac.apkcloner.ui.theme.ThemePreferences
 
-/** Lists the clone APKs built by this app and lets the user install or remove them. */
+/** Lists the clone APKs built by this app and lets the user install, share or remove them. */
 class ClonesActivity : AppCompatActivity() {
 
-    private lateinit var list: ListView
-    private lateinit var emptyText: TextView
-    private val adapter by lazy { CloneListAdapter(this) }
+    private lateinit var toolbar: MaterialToolbar
+    private lateinit var list: RecyclerView
+    private lateinit var emptyStateView: View
+    private lateinit var emptyActionButton: MaterialButton
+
+    private val adapter by lazy {
+        CloneListAdapter(
+            context = this,
+            onInstall = { record -> install(record) },
+            onShare = { record -> ApkInstaller.share(this, record.apkFile) },
+            onDelete = { record -> confirmDelete(record) },
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemePreferences.applyActivityTheme(this)
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContentView(R.layout.activity_clones)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        toolbar = findViewById(R.id.toolbar)
         list = findViewById(R.id.cloneList)
-        emptyText = findViewById(R.id.emptyText)
-        list.adapter = adapter
+        emptyStateView = findViewById(R.id.emptyStateView)
+        emptyActionButton = findViewById(R.id.emptyActionButton)
 
-        list.setOnItemClickListener { _, _, position, _ -> install(adapter.getItem(position)) }
-        list.setOnItemLongClickListener { _, _, position, _ ->
-            showActions(adapter.getItem(position))
-            true
+        toolbar.setNavigationOnClickListener { finish() }
+        emptyActionButton.setOnClickListener { finish() }
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.rootLayout)) { _, insets ->
+            val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            val navBarInsets = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+
+            toolbar.updatePadding(top = statusBarInsets.top)
+            list.updatePadding(bottom = navBarInsets.bottom + 16)
+            emptyStateView.updatePadding(bottom = navBarInsets.bottom)
+            insets
         }
+
+        list.layoutManager = LinearLayoutManager(this)
+        list.adapter = adapter
     }
 
     override fun onResume() {
@@ -40,21 +69,16 @@ class ClonesActivity : AppCompatActivity() {
         refresh()
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        finish()
-        return true
-    }
-
     private fun refresh() {
         val records = CloneStore.load(this)
         adapter.submit(records)
         list.visibility = if (records.isEmpty()) View.GONE else View.VISIBLE
-        emptyText.visibility = if (records.isEmpty()) View.VISIBLE else View.GONE
+        emptyStateView.visibility = if (records.isEmpty()) View.VISIBLE else View.GONE
     }
 
     private fun install(record: CloneRecord) {
         if (!ApkInstaller.canInstall(this)) {
-            AlertDialog.Builder(this)
+            MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.install_permission_title)
                 .setMessage(R.string.install_permission_body)
                 .setPositiveButton(R.string.open_settings) { _, _ -> ApkInstaller.openInstallPermissionSettings(this) }
@@ -67,27 +91,8 @@ class ClonesActivity : AppCompatActivity() {
         }
     }
 
-    private fun showActions(record: CloneRecord) {
-        AlertDialog.Builder(this)
-            .setTitle(record.label)
-            .setItems(
-                arrayOf(
-                    getString(R.string.action_install),
-                    getString(R.string.action_share),
-                    getString(R.string.action_delete),
-                )
-            ) { _, which ->
-                when (which) {
-                    0 -> install(record)
-                    1 -> ApkInstaller.share(this, record.apkFile)
-                    2 -> confirmDelete(record)
-                }
-            }
-            .show()
-    }
-
     private fun confirmDelete(record: CloneRecord) {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.action_delete)
             .setMessage(getString(R.string.delete_clone_body, record.label))
             .setPositiveButton(R.string.action_delete) { _, _ ->

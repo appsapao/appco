@@ -53,11 +53,34 @@
     <string name="action_delete">Delete</string>
     <string name="delete_clone_body">Delete the APK for “%1$s”? An installed clone is not affected.</string>
     <string name="clone_deleted">Clone APK deleted</string>
-    <string name="empty_clones">No clones built yet.\nPick an installed app to create one.</string>
+    <string name="empty_clones">No clones built yet</string>
+    <string name="empty_clones_subtitle">Apps you clone will appear here for easy management, installation, and sharing.</string>
+    <string name="empty_clones_action">Clone an app</string>
+    <string name="empty_search_title">No apps found</string>
+    <string name="empty_search_subtitle">Check your spelling or try searching by package name</string>
 
     <string name="menu_clones">Clones</string>
     <string name="menu_pick_apk">Pick APK file…</string>
+    <string name="menu_theme">Theme</string>
     <string name="menu_about">About &amp; limitations</string>
+
+    <string name="theme_dialog_title">Choose theme</string>
+    <string name="theme_system">Follow system</string>
+    <string name="theme_system_desc">Match device dark/light setting</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_amoled">AMOLED (Pure Black)</string>
+    <string name="theme_amoled_desc">Deep pitch black for OLED displays</string>
+
+    <string name="split_apk_badge">Split APK · Not clonable</string>
+    <string name="compatibility_header">Compatibility &amp; Analysis</string>
+    <string name="compatibility_good">Ready to clone</string>
+    <string name="clone_configuration_header">Clone Configuration</string>
+    <string name="package_name_helper">Must be unique on your device</string>
+    <string name="options_header">Advanced Options</string>
+    <string name="clone_action_button">Create Clone APK</string>
+    <string name="filter_clear_description">Clear filter</string>
+    <string name="app_icon_description">App icon</string>
 
     <string name="about_title">About &amp; limitations</string>
     <string name="about_body">APK Cloner builds a new, independently installable app from an APK: it rewrites the package name, the launcher label, the provider authorities and selected permissions in the binary manifest, repackages the ZIP with correct alignment, and signs the result with a key generated on this device.\n\nWhat it cannot do:\n• Work without the original APK: the clone contains the original app’s code and resources, unmodified.\n• Keep the original signature. Google sign-in, Play Integrity, in-app billing, DRM and anything else that checks the signing certificate will fail.\n• Clone split APKs / app bundles, or apps that declare a sharedUserId.\n• Install without user confirmation: Android always asks.\n• Keep Play Store updates. The clone is a separate app and is not updated by the store.\n\nWhat it does not do:\n• No code is modified or patched.\n• Nothing leaves the device; the app requests no network permission.</string>

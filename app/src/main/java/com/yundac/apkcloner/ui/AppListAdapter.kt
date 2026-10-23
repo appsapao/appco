@@ -4,13 +4,17 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.recyclerview.widget.RecyclerView
 import com.yundac.apkcloner.R
 import com.yundac.apkcloner.data.InstalledApp
 
-class AppListAdapter(private val context: Context) : BaseAdapter() {
+class AppListAdapter(
+    private val context: Context,
+    private val onItemClick: (InstalledApp) -> Unit
+) : RecyclerView.Adapter<AppListAdapter.ViewHolder>() {
 
     private val items = ArrayList<InstalledApp>()
 
@@ -20,44 +24,54 @@ class AppListAdapter(private val context: Context) : BaseAdapter() {
         notifyDataSetChanged()
     }
 
-    override fun getCount(): Int = items.size
+    fun getItem(position: Int): InstalledApp = items[position]
 
-    override fun getItem(position: Int): InstalledApp = items[position]
+    override fun getItemCount(): Int = items.size
 
-    override fun getItemId(position: Int): Long = items[position].packageName.hashCode().toLong()
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_app, parent, false)
+        return ViewHolder(view)
+    }
 
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val view = convertView ?: LayoutInflater.from(context).inflate(R.layout.item_app, parent, false)
-        val app = getItem(position)
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val app = items[position]
+        holder.bind(app)
+    }
 
-        val holder = view.tag as? ViewHolder ?: ViewHolder(view).also { view.tag = it }
-        holder.icon.setImageDrawable(
-            app.icon ?: androidx.appcompat.content.res.AppCompatResources.getDrawable(context, R.drawable.ic_app_default)
-        )
-        holder.name.text = app.label
-        holder.detail.text = if (app.splitCount > 0) {
-            context.getString(
-                R.string.app_item_detail_split,
-                app.packageName,
-                app.versionName ?: "?",
-                app.sizeBytes.readableSize(),
+    inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        private val icon: ImageView = view.findViewById(R.id.appIcon)
+        private val name: TextView = view.findViewById(R.id.appName)
+        private val detail: TextView = view.findViewById(R.id.appDetail)
+        private val splitBadge: TextView = view.findViewById(R.id.splitBadge)
+
+        init {
+            view.setOnClickListener {
+                val position = bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onItemClick(items[position])
+                }
+            }
+        }
+
+        fun bind(app: InstalledApp) {
+            icon.setImageDrawable(
+                app.icon ?: AppCompatResources.getDrawable(context, R.drawable.ic_app_default)
             )
-        } else {
-            context.getString(
+            name.text = app.label
+            detail.text = context.getString(
                 R.string.app_item_detail,
                 app.packageName,
                 app.versionName ?: "?",
                 app.sizeBytes.readableSize(),
             )
+
+            if (app.splitCount > 0) {
+                splitBadge.visibility = View.VISIBLE
+                itemView.alpha = 0.65f
+            } else {
+                splitBadge.visibility = View.GONE
+                itemView.alpha = 1.0f
+            }
         }
-        holder.detail.alpha = if (app.splitCount > 0) 0.6f else 1f
-
-        return view
-    }
-
-    private class ViewHolder(view: View) {
-        val icon: ImageView = view.findViewById(R.id.appIcon)
-        val name: TextView = view.findViewById(R.id.appName)
-        val detail: TextView = view.findViewById(R.id.appDetail)
     }
 }

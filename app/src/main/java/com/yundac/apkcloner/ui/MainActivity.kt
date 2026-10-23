@@ -6,19 +6,29 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.EditText
-import android.widget.ListView
-import android.widget.ProgressBar
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.yundac.apkcloner.R
 import com.yundac.apkcloner.data.InstalledApp
 import com.yundac.apkcloner.data.InstalledApps
+import com.yundac.apkcloner.ui.theme.ThemePreferences
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -28,12 +38,28 @@ import java.util.concurrent.Executors
  */
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var toolbar: MaterialToolbar
     private lateinit var filterInput: EditText
+    private lateinit var clearFilterButton: ImageButton
     private lateinit var statusText: TextView
-    private lateinit var progressBar: ProgressBar
-    private lateinit var appList: ListView
+    private lateinit var progressBar: LinearProgressIndicator
+    private lateinit var appList: RecyclerView
+    private lateinit var emptyStateView: View
+    private lateinit var fabPickApk: ExtendedFloatingActionButton
 
-    private val adapter by lazy { AppListAdapter(this) }
+    private val adapter by lazy {
+        AppListAdapter(this) { app -> openClone(app) }
+    }
+
+    private val pickApkLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val uri = result.data?.data ?: return@registerForActivityResult
+            importApk(uri)
+        }
+    }
+
     private val executor = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "app-list-loader").apply { isDaemon = true }
     }
@@ -41,19 +67,70 @@ class MainActivity : AppCompatActivity() {
     private var allApps: List<InstalledApp> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Splash screen initialization
+        installSplashScreen()
+
+        // Apply AMOLED theme overlay if configured
+        ThemePreferences.applyActivityTheme(this)
+
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
+        toolbar = findViewById(R.id.toolbar)
         filterInput = findViewById(R.id.filterInput)
+        clearFilterButton = findViewById(R.id.clearFilterButton)
         statusText = findViewById(R.id.statusText)
         progressBar = findViewById(R.id.progressBar)
         appList = findViewById(R.id.appList)
+        emptyStateView = findViewById(R.id.emptyStateView)
+        fabPickApk = findViewById(R.id.fabPickApk)
 
+        // Setup Toolbar & Menu
+        toolbar.inflateMenu(R.menu.main)
+        toolbar.setOnMenuItemClickListener { onMenuItemSelected(it) }
+
+        // Setup Edge-to-Edge Window Insets
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.rootLayout)) { _, insets ->
+            val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            val navBarInsets = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+
+            toolbar.updatePadding(top = statusBarInsets.top)
+            appList.updatePadding(bottom = navBarInsets.bottom + 88)
+            emptyStateView.updatePadding(bottom = navBarInsets.bottom)
+            fabPickApk.updatePadding(bottom = 0) // default layout margin handles elevation
+            val lp = fabPickApk.layoutParams as androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams
+            lp.bottomMargin = navBarInsets.bottom + 16
+            fabPickApk.layoutParams = lp
+
+            insets
+        }
+
+        appList.layoutManager = LinearLayoutManager(this)
         appList.adapter = adapter
-        appList.setOnItemClickListener { _, _, position, _ -> openClone(adapter.getItem(position)) }
+
+        // Shrink FAB on scroll
+        appList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if (dy > 8 && fabPickApk.isExtended) {
+                    fabPickApk.shrink()
+                } else if (dy < -8 && !fabPickApk.isExtended) {
+                    fabPickApk.extend()
+                }
+            }
+        })
+
+        fabPickApk.setOnClickListener { pickApkFile() }
+
+        clearFilterButton.setOnClickListener {
+            filterInput.text?.clear()
+        }
+
         filterInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                clearFilterButton.visibility = if (s.isNullOrEmpty()) View.GONE else View.VISIBLE
+            }
             override fun afterTextChanged(s: Editable?) = applyFilter(s?.toString().orEmpty())
         })
 
@@ -95,6 +172,14 @@ class MainActivity : AppCompatActivity() {
             }
         }
         adapter.submit(filtered)
+
+        if (filtered.isEmpty() && allApps.isNotEmpty()) {
+            emptyStateView.visibility = View.VISIBLE
+            appList.visibility = View.GONE
+        } else {
+            emptyStateView.visibility = View.GONE
+            appList.visibility = View.VISIBLE
+        }
     }
 
     private fun openClone(app: InstalledApp) {
@@ -108,12 +193,7 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.main, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
+    private fun onMenuItemSelected(item: MenuItem): Boolean = when (item.itemId) {
         R.id.action_clones -> {
             startActivity(Intent(this, ClonesActivity::class.java))
             true
@@ -124,12 +204,17 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
+        R.id.action_theme -> {
+            ThemePreferences.showThemeDialog(this)
+            true
+        }
+
         R.id.action_about -> {
             showAbout()
             true
         }
 
-        else -> super.onOptionsItemSelected(item)
+        else -> false
     }
 
     private fun pickApkFile() {
@@ -138,16 +223,8 @@ class MainActivity : AppCompatActivity() {
             type = "*/*"
             putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("application/vnd.android.package-archive", "application/zip"))
         }
-        runCatching { startActivityForResult(intent, REQUEST_PICK_APK) }
+        runCatching { pickApkLauncher.launch(intent) }
             .onFailure { Toast.makeText(this, R.string.no_file_picker, Toast.LENGTH_SHORT).show() }
-    }
-
-    @Deprecated("Uses the classic result API to avoid an extra androidx.activity dependency")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode != REQUEST_PICK_APK || resultCode != Activity.RESULT_OK) return
-        val uri = data?.data ?: return
-        importApk(uri)
     }
 
     private fun importApk(uri: Uri) {
@@ -180,7 +257,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showAbout() {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.about_title)
             .setMessage(R.string.about_body)
             .setPositiveButton(android.R.string.ok, null)
@@ -191,9 +268,4 @@ class MainActivity : AppCompatActivity() {
         executor.shutdownNow()
         super.onDestroy()
     }
-
-    companion object {
-        private const val REQUEST_PICK_APK = 1001
-    }
 }
-

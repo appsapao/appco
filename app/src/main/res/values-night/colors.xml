@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material 3 Dark Baseline -->
+    <color name="md_theme_dark_primary">#A8C7FA</color>
+    <color name="md_theme_dark_onPrimary">#04306E</color>
+    <color name="md_theme_dark_primaryContainer">#0842A0</color>
+    <color name="md_theme_dark_onPrimaryContainer">#D3E3FD</color>
+
+    <color name="md_theme_dark_secondary">#7FCFFF</color>
+    <color name="md_theme_dark_onSecondary">#003454</color>
+    <color name="md_theme_dark_secondaryContainer">#004B76</color>
+    <color name="md_theme_dark_onSecondaryContainer">#C2E7FF</color>
+
+    <color name="md_theme_dark_tertiary">#DABFE2</color>
+    <color name="md_theme_dark_onTertiary">#3D2845</color>
+    <color name="md_theme_dark_tertiaryContainer">#553E5D</color>
+    <color name="md_theme_dark_onTertiaryContainer">#F7D8FF</color>
+
+    <color name="md_theme_dark_error">#FFB4AB</color>
+    <color name="md_theme_dark_onError">#690005</color>
+    <color name="md_theme_dark_errorContainer">#93000A</color>
+    <color name="md_theme_dark_onErrorContainer">#FFDAD6</color>
+
+    <color name="md_theme_dark_background">#111315</color>
+    <color name="md_theme_dark_onBackground">#E1E2E5</color>
+    <color name="md_theme_dark_surface">#111315</color>
+    <color name="md_theme_dark_onSurface">#E1E2E5</color>
+    <color name="md_theme_dark_surfaceVariant">#444746</color>
+    <color name="md_theme_dark_onSurfaceVariant">#C4C7C5</color>
+    <color name="md_theme_dark_outline">#8E918F</color>
+    <color name="md_theme_dark_outlineVariant">#444746</color>
+
+    <color name="md_theme_dark_surfaceContainerLowest">#0C0E10</color>
+    <color name="md_theme_dark_surfaceContainerLow">#191C1E</color>
+    <color name="md_theme_dark_surfaceContainer">#1D2022</color>
+    <color name="md_theme_dark_surfaceContainerHigh">#272A2D</color>
+    <color name="md_theme_dark_surfaceContainerHighest">#323538</color>
+
+    <!-- Legacy / Semantic aliases -->
+    <color name="primary">@color/md_theme_dark_primary</color>
+    <color name="primary_dark">#041E49</color>
+    <color name="accent">#7FCFFF</color>
+    <color name="window_background">@color/md_theme_dark_background</color>
+    <color name="text_secondary">@color/md_theme_dark_onSurfaceVariant</color>
+
+    <!-- Findings Severities (M3 Dark container & content colors) -->
+    <color name="severity_blocker">#FFB4AB</color>
+    <color name="severity_blocker_container">#93000A</color>
+    <color name="severity_blocker_on_container">#FFDAD6</color>
+
+    <color name="severity_warning">#FFB74D</color>
+    <color name="severity_warning_container">#4E2600</color>
+    <color name="severity_warning_on_container">#FFE0B2</color>
+
+    <color name="severity_info">#A8C7FA</color>
+    <color name="severity_info_container">#0842A0</color>
+    <color name="severity_info_on_container">#D3E3FD</color>
+</resources>
